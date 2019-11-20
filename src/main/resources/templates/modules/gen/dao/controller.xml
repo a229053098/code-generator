@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>controller</name>
+	<filePath>src/main/java/${PackageName}/controller/</filePath>
+	<fileName>${ClassName}Controller.java</fileName>
+	<content><![CDATA[
+
+package ${PackageName}.controller;
+
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import ${PackageName}.bean.BSGridPage;
+import ${PackageName}.controller.BaseController;
+import ${PackageName}.entity.${ClassName};
+import ${PackageName}.excel.${ClassName}Ex;
+import ${PackageName}.entity.User;
+import ${PackageName}.model.${ClassName}Model;
+import ${PackageName}.service.I${ClassName}Service;
+import ${PackageName}.util.ExcelUtil;
+import ${PackageName}.util.QueryFilter;
+import ${PackageName}.util.DateUtil;
+import ${PackageName}.exception.ExcelException;
+import java.util.Arrays;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.List;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.text.ParseException;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ *
+ * ${ClassName} 控制层
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+@Controller
+@RequestMapping("/b/${className}")
+public class ${ClassName}Controller extends BaseController{
+
+	@Autowired
+	protected I${ClassName}Service ${className}Service;
+
+    @RequestMapping("/listUI")
+    public String listUI() {
+        return "/page/${className}/${className}-list";
+    }
+
+    @RequestMapping("/list")
+    @ResponseBody
+    public Object list(BSGridPage<${ClassName}> bsPage) {
+        return ${className}Service.getBSPage(bsPage, QueryFilter.getInstance(request));
+    }
+
+    @RequestMapping("/editUI")
+    public String editUI(Integer id) {
+    	${ClassName} ${className} = ${className}Service.selectById(id);
+        if (id != null) {
+        	<#list table.columnList as c>
+        	<#if c.showType == "carouselselect">
+        	if (${className} != null && StringUtils.isNotBlank(${className}.get${c.simpleJavaField?cap_first}())) {
+                String ${c.javaField}UrlStr = ${className}.get${c.simpleJavaField?cap_first}();
+                List<String> ${c.javaField}UrlList = Arrays.asList(${c.javaField}UrlStr.split(","));
+                request.setAttribute("${c.javaField}UrlList", ${c.javaField}UrlList);
+            }
+            </#if>
+            </#list>
+            request.setAttribute("vo", ${className}Service.selectById(id));
+        }
+        <#list table.columnList as c>
+        <#if c.javaType == "java.util.Date">
+        <#if c.isNull == "0" && c.isEdit == "1">
+        if (${className} != null){
+            ${ClassName}Model ${className}Model = new ${ClassName}Model();
+            if(${className}.get${c.simpleJavaField?cap_first}() != null){
+                ${className}Model.set${c.simpleJavaField?cap_first}s(DateUtil.format("yyyy-MM-dd",${className}.get${c.simpleJavaField?cap_first}()));
+            }
+            request.setAttribute("${c.javaField}s",${className}Model.get${c.simpleJavaField?cap_first}s());
+        }
+        </#if>
+        </#if>
+        </#list>
+        return "/page/${className}/${className}-edit";
+    }
+
+    @RequestMapping("/save")
+    @ResponseBody
+    public String update(${ClassName} ${className},${ClassName}Model ${className}Model) {
+    	User user = userService.selectById(getBUser());
+    	<#list table.columnList as c>
+        <#if c.javaType == "java.util.Date">
+        <#if c.isNull == "0" && c.isEdit == "1">
+        String ${c.javaField} = ${className}Model.get${c.simpleJavaField?cap_first}s().toString();
+        if(${c.javaField} != null || ${c.javaField} !=""){
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = null;
+            try {
+                date = sdf.parse(${c.javaField});
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            if (date != null) {
+                ${className}Model.set${c.simpleJavaField?cap_first}(date);
+            }
+            if (date == null){
+                boolean re = ${className}Service.update${c.javaField}Null(${className});
+            }
+        }
+        </#if>
+        </#if>
+        </#list>
+    	<#list table.columnList as c>
+    	<#if c.showType == "pictureselect">
+    	<#if c.isNull == "0">
+    	if (StringUtils.isBlank(${className}.get${c.simpleJavaField?cap_first}())){
+            return "${c.javaField}NotNull";
+        }
+        </#if>
+        </#if>
+        </#list>
+        if (${className}.getId() != null) {
+        	<#list table.columnList as c>
+        	<#if c.name == "update_user">
+        	${className}.setUpdateUser(user.getId());
+        	</#if>
+        	<#if c.name == "update_date">
+        	${className}.setUpdateDate(new Date());
+        	</#if>
+        	</#list>
+            ${ClassName} update${ClassName} = ${className}Service.selectById(${className}.getId());
+            <#list table.columnList as c>
+            <#if c.isEdit == "1">
+            update${ClassName}.set${c.simpleJavaField?cap_first}(${className}.get${c.simpleJavaField?cap_first}());
+            </#if>
+            </#list>
+            ${className}Service.updateById(${className});
+        } else {
+        	<#list table.columnList as c>
+        	<#if c.name == "create_user">
+        	${className}.setCreateUser(user.getId());
+        	</#if>
+        	<#if c.name == "create_date">
+        	${className}.setCreateDate(new Date());
+        	</#if>
+        	</#list>
+            ${className}Service.insertSelective(${className});
+        }
+        return "success";
+    }
+
+    @RequestMapping("/del")
+    @ResponseBody
+    public String delete(Long id) {
+        ${className}Service.deleteById(id);
+        return "success";
+    }
+
+    @RequestMapping("/delAll")
+    @ResponseBody
+    public String delAll(String ids) {
+        boolean isDelete = ${className}Service.deleteBatchByIds(ids);
+        String result = isDelete ? "success" : "error";
+        return result;
+    }
+
+    <#if excel == "1">
+    @RequestMapping("/${className}Ex")
+    @ResponseBody
+    public void ${className}Ex() throws IOException, ExcelException{
+        EntityWrapper entityWrapper = QueryFilter.getInstance(request).buildEntityWrapper();
+        List<${ClassName}Ex> ${className}ExList = ${className}Service.queryExportList(entityWrapper);
+        ExcelUtil<${ClassName}Ex> util1 = new ExcelUtil<${ClassName}Ex>(${ClassName}Ex.class);
+        response.setContentType("APPLICATION/OCTET-STREAM");
+        response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode("${ClassName}.xls", "UTF-8"));
+        util1.getListToExcel(${className}ExList, "${ClassName}", response.getOutputStream());
+    }
+    </#if>
+
+}
+]]>
+	</content>
+</template>

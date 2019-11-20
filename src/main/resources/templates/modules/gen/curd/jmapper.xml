@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>service</name>
+	<filePath>src/main/java/${PackageName}/mapper/</filePath>
+	<fileName>${ClassName}Mapper.java</fileName>
+	<content><![CDATA[
+
+
+package ${PackageName}.mapper;
+
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import java.util.List;
+import com.baomidou.mybatisplus.plugins.Page;
+import ${PackageName}.entity.${ClassName};
+import ${PackageName}.model.${ClassName}Model;
+import ${PackageName}.excel.${ClassName}Ex;
+import com.baomidou.mybatisplus.mapper.AutoMapper;
+
+/**
+ *
+ * ${ClassName} 表数据库控制层接口
+ *
+ */
+public interface ${ClassName}Mapper extends AutoMapper<${ClassName}> {
+
+	<#-- 联表判断 -->
+    <#list table.columnList as c>
+		<#if c.referenceTable != "" && c.referenceField != "">
+			<#assign foo2=true />
+		</#if>
+    </#list>
+
+	<#if excel == "1">
+	List<${ClassName}Ex> queryExportList(<#if foo2??>${ClassName}Model model<#else>EntityWrapper entityWrapper</#if>);
+	</#if>
+
+	List<${ClassName}Model> getPage(Page<${ClassName}Model> page, ${ClassName}Model params);
+
+	/**
+     * 联表集合
+     * @param params
+     * @return
+     */
+	List<${ClassName}Model> getJoinList(${ClassName}Model params);
+
+
+	/**
+     * 单表集合
+     * @param params
+     * @return
+     */
+	List<${ClassName}Model> getSimpleList(${ClassName}Model params);
+
+
+
+}]]>
+	</content>
+</template>

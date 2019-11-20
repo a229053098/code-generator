@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+    <name>viewForm</name>
+    <filePath>src/main/webapp/WEB-INF/page/${className}</filePath>
+    <fileName>${className}-edit.jsp</fileName>
+    <content><![CDATA[
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@include file="/jspf/fn.jspf" %>
+
+<!DOCTYPE HTML>
+<html>
+<head>
+    <%@include file="/jspf/edit-meta.jspf" %>
+    <title>${genScheme.name}</title>
+</head>
+
+<body>
+<article class="page-container">
+    <form action="" method="post" class="form form-horizontal" id="form-member-add">
+
+        <input type="hidden" name="<#list table.columnList as c><#if c.isPk == "1">${c.javaField}</#if></#list>" value="${"$"}{vo.<#list table.columnList as c><#if c.isPk == "1">${c.javaField}</#if></#list>}"/>
+
+    <#list table.columnList as c>
+    <#if c.isEdit?? && c.isEdit == "1">
+    <#if c.showType != "pictureselect" && c.showType != "carouselselect">
+        <div class="row cl">
+            <label class="form-label col-xs-3 col-sm-3"><#if c.isNull != "1"><span class="c-red">*</span></#if>${c.comments}：</label>
+            <div class="formControls col-xs-<#if c.javaType == "java.util.Date">3<#else>7</#if> col-sm-<#if c.javaType == "java.util.Date">3<#else>7</#if>">
+            <#if c.showType == "input">
+                <input class="input-text" value="${"$"}{vo.${c.javaField}}" name="${c.javaField}" placeholder="">
+            <#elseif c.showType == "textarea">
+                <textarea class="textarea" name="${c.javaField}" placeholder="">${"$"}{vo.${c.javaField}}</textarea>
+            <#elseif c.showType == "pictureselect">
+                <input class="input-text" value="${"$"}{vo.${c.javaField}}" name="${c.javaField}" placeholder="">
+                <#-- 数值类型时间字段 -->
+            <#elseif c.javaType != "java.util.Date"  && c.showType == "dateselect" >
+                <input type="text" value="${"$"}{vo.${c.javaField}${"str"}}" name="${c.javaField}str" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})"
+                id="${c.javaField}Datemax" class="input-text Wdate" style="width:205px;" readonly>
+            <#elseif c.javaType == "java.util.Date">
+                <input type="text" value="<fmt:formatDate value="${"$"}{vo.${c.javaField}}" pattern="yyyy-MM-dd HH:mm:ss"></fmt:formatDate>" name="${c.javaField}" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})"
+                id="${c.javaField}Datemax" class="input-text Wdate" style="width:205px;" readonly>
+            <#elseif c.showType == "select" && c.referenceEntity != "">
+            <select class="input-text" name="${c.javaFieldId}">
+                <option value="">---请选择---</option>
+                <c:forEach items="${"${"}${c.referenceEntity?lower_case}s}" var="item">
+                    <#if c.referenceField?split('|')[0]?contains("_")>
+                    <#-- 关联的字段有下划线 -->
+                    <option value="${"$"}{item.${(c.referenceField?split('|'))[0]?split('_')[0]}${((c.referenceField?split('|'))[0])?split('_')[1]?cap_first}}" <c:if test="${"$"}{vo.${c.javaFieldId} == item.${(c.referenceField?split('|'))[0]?split('_')[0]}${((c.referenceField?split('|'))[0])?split('_')[1]?cap_first}}">selected</c:if>>${"$"}{item.${dashedToCamel((c.referenceField?split('|'))[1])}}</option>
+                    <#else>
+                    <option value="${"$"}{item.${(c.referenceField?split('|'))[0]}}" <c:if test="${"$"}{vo.${c.javaFieldId} == item.${(c.referenceField?split('|'))[0]}}">selected</c:if>>${"$"}{item.${dashedToCamel((c.referenceField?split('|'))[1])}}</option>
+                    </#if>
+                </c:forEach>
+            </select>
+            <#elseif c.showType == "select">
+                <select class="input-text" name="${c.javaFieldId}">
+                    <option value="">---请选择---</option>
+                    <c:forEach items="${"$"}{dict:getByType('${c.dictType}')}" var="item">
+                        <option value="${"$"}{item.code}" <c:if test="${"$"}{vo.${c.javaFieldId} == item.code}">selected</c:if>>${"$"}{item.name}</option>
+                    </c:forEach>
+                </select>
+            <#elseif c.showType == "radiobox">
+                <c:forEach items="${"$"}{dict:getByType('${c.dictType}')}" var="item">
+                    <label><input type="radio" name="${c.javaField}" value="${"$"}{item.code}" <c:if test="${"$"}{vo.${c.javaField} == item.code}">checked</c:if>>${"$"}{item.name}</label>
+                </c:forEach>
+            <#elseif c.showType == "checkbox">
+                <form:checkboxes path="${c.javaFieldId}" items="${"$"}{fns:getDictList('${c.dictType}')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
+            <#elseif c.showType == "fileselect">
+                <div id="upload_div_${c.javaField}File" class="formControls col-xs-7 col-sm-7">
+                <span class="btn-upload">
+                    <a href="javascript:void(0);" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe642;</i> 上传文件</a>
+                        <input type="file" id="${c.javaField}File" multiple name="file" class="input-file" onchange="${c.javaField}SelectFile(this)">
+                    <span>请选择文件！</span>
+                        </span>
+                <input type="hidden" name="${c.javaField}" value="${"$"}{vo.${c.javaField}}" id="${c.javaField}">
+            <#elseif c.showType == "RTEselect">
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-2 col-sm-2"></label>
+            <div class="formControls col-xs-7 col-sm-7">
+                <script type="text/plain" id="${c.javaField}Editor" style="width:650px;height:500px;display: inline-block;"></script>
+                <textarea class="textarea" id="${c.javaField}" name="${c.javaField}" style="display: none;">${"$"}{vo.${c.javaField}}</textarea>
+            </#if>
+            </div>
+        </div>
+        </#if>
+    </#if>
+        <#if c.showType == "pictureselect" || c.showType == "carouselselect">
+        <#-- 图片上传或者轮播图上传 -->
+
+        <div class="row cl">
+            <label class="form-label col-xs-3 col-sm-3"><#if c.isNull != "1"><span class="c-red">*</span></#if>${c.comments}：</label>
+            <#if c.showType == "pictureselect">
+            <div id="upload_div_${c.name}" class="formControls col-xs-7 col-sm-7">
+            <#elseif c.showType == "carouselselect">
+            <div id="uploads_div_${c.name}" class="formControls col-xs-7 col-sm-7">
+            </#if>
+            <#if c.showType == "pictureselect">
+                <span class="btn-upload">
+                    <a href="javascript:void(0);" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe642;</i> 上传图片</a>
+                        <input type="file" id="upload_${c.name}" multiple name="file" class="input-file">
+                        </span>
+                        <span style="color: red;">图片尺寸：1x1</span>
+                <input type="hidden" name="${c.javaField}" value="${"$"}{vo.${c.javaField}}" id="${c.javaField}">
+
+                <div class="img-preview" style="margin-top:10px;">
+                    <div class="bar" style="width: 0%;"></div>
+                    <c:if test="${"$"}{not empty vo.${c.javaField}}">
+                        <img onclick="openView(this)" width="60px" height="60px" src="${"$"}{staticAddressUrl}/${"$"}{vo.${c.javaField}}" />
+                    </c:if>
+                </div>
+            </#if>
+            <#if c.showType == "carouselselect">
+                <span class="btn-upload">
+                    <a href="javascript:void(0);" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe642;</i> 上传图片</a>
+                        <input type="file" id="uploads_${c.name}" multiple name="file" class="input-file">
+                </span>
+                <span style="color: red;">图片尺寸：1x1</span>
+                <div class="img-preview img-preview-imageUrls" style="margin-top:10px;">
+                    <div class="bar" style="width: 0%;"></div>
+                    <c:forEach items="${"$"}{${c.javaField}UrlList}" var="${c.javaField}">
+                        <div style="display: inline-block;position: relative;margin-left: 5px;margin-bottom: 5px;">
+                            <img onclick="openView(this)" width="60px" height="60px" src="${"$"}{staticAddressUrl}/${"$"}{vo.${c.javaField}}"/>
+                            <input name="${c.javaField}" value="${"$"}{vo.${c.javaField}}" type="hidden">
+                            <div onclick="imageUrlClose(this)" style="cursor:pointer;position: absolute;right: 0;top: 0;">X</div>
+                        </div>
+                    </c:forEach>
+                </div>
+            </#if>
+            </div>
+        </div>
+        </#if>
+
+    </#list>
+
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-8 col-xs-offset-2 col-sm-offset-2 text-c">
+                <input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+                <input class="btn btn-primary radius" type="button" onclick="layer_close()"
+                       value="&nbsp;&nbsp;取消&nbsp;&nbsp;">
+            </div>
+        </div>
+
+    </form>
+</article>
+
+<#list table.columnList as c>
+<#if c.showType == "carouselselect">
+<div style="display: none" id="${c.javaField}UrlTemplate">
+    <div style="display: inline-block;position: relative;margin-left: 5px;margin-bottom: 5px;">
+        <img onclick="openView(this)" width="60px" height="60px" src=""/>
+        <input name="${c.javaField}" type="hidden">
+        <div onclick="imageUrlClose(this)" style="cursor:pointer;position: absolute;right: 0;top: 0;">X</div>
+    </div>
+</div>
+</#if>
+</#list>
+
+<%@include file="/jspf/edit-footer.jspf" %>
+<#-- 是否需要时间控件判断 -->
+    <#list table.columnList as c>
+		<#if c.javaType == "java.util.Date" && c.showType == "dateselect" && c.isEdit == "1">
+			<#assign isDate=true />
+		</#if>
+    </#list>
+<#if isDate??>
+<%--时间控件--%>
+<script type="text/javascript" src="${"$"}{ctx}/plugins/lib/My97DatePicker/WdatePicker.js"></script>
+</#if>
+<#-- 是否需要图片上传判断 -->
+    <#list table.columnList as c>
+		<#if (c.showType == "pictureselect" || c.showType == "carouselselect") && c.isEdit == "1">
+			<#assign isImg=true />
+		</#if>
+    </#list>
+<#if isImg??>
+<%--图片上传--%>
+<script type="text/javascript" src="${"$"}{ctx}/plugins/lib/fileupload/js/vendor/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="${"$"}{ctx}/plugins/lib/fileupload/js/jquery.iframe-transport.js"></script>
+<script type="text/javascript" src="${"$"}{ctx}/plugins/lib/fileupload/js/jquery.fileupload.js"></script>
+</#if>
+
+<#-- 是否需要文件上传判断 -->
+    <#list table.columnList as c>
+		<#if c.showType == "fileselect" && c.isEdit == "1">
+			<#assign isFile=true />
+		</#if>
+    </#list>
+<#if isFile??>
+<%--ajax文件上传--%>
+<script type="text/javascript" src="${ctx}/plugins/lib/jquery/1.9.1/ajaxfileupload.js"></script>
+</#if>
+
+
+
+    <!--请在下方写此页面业务相关的脚本-->
+    <script type="text/javascript">
+
+    <#list table.columnList as c>
+    <#if c.showType == "RTEselect">
+    function ${c.javaField}UEditor(){
+        var ue = UE.getEditor('${c.javaField}Editor');
+        ue.ready(function() {
+        ue.setContent($("${"#"}${c.javaField}").text());
+        });
+        UE.getEditor('${c.javaField}Editor').addListener('blur',function(${c.javaField}Editor){
+            $("${"#"}${c.javaField}").html(ue.getContent());
+        });
+    }
+    ${c.javaField}UEditor();
+    </#if>
+    </#list>
+
+    //字段验证
+    $(function () {
+        //所有下拉框使用select2
+        $("select").select2();
+
+        $("#form-member-add").validate({
+            rules: {
+                <#list table.columnList as c>
+                ${c.javaField}: {<#if c.isNull == "0">required: true,</#if>},
+                </#list>
+            },
+        onkeyup: false,
+        focusCleanup: true,
+        success: "valid",
+        submitHandler: function (form) {
+            summitForm(form);
+            }
+        });
+    });
+
+    <#list table.columnList as c>
+    <#if c.showType == "pictureselect">
+    //图片
+    $("#upload_${c.name}").fileupload({
+        url:"${"$"}{ctx}/b/uploadFile/uploadImage",//文件上传地址，当然也可以直接写在input的data-url属性内
+        formData:{},//如果需要额外添加参数可以在这里添加,
+        progressall: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            $('#upload_div_${c.name} .bar').css(
+            'width',
+            progress + '%'
+            );
+        },
+        send : function(e,data){
+        var filename = data.files[0].name;
+        if (filename.indexOf(".JPG") < 1 && filename.indexOf(".jpg") < 1 && filename.indexOf(".jpeg") < 1 && filename.indexOf(".JPEG") < 1 && filename.indexOf(".PNG") < 1 && filename.indexOf(".png") < 1){
+            xxl.message("文件格式错误！！");
+            return false;
+            }
+        },
+        done:function(e,result){
+            var resultData = result.result;
+            if(resultData.code==0){
+                var icon = resultData.data;
+                $("#${c.javaField}").val(icon);
+                var img = '<div class="bar" style="width: 0%;"></div><img style="width: 60px; height: 60px;" src="${"$"}{staticAddressUrl}/'+ icon +'" />';
+                $("#upload_div_${c.name} .img-preview").html(img);
+            }else{
+                xxl.message(resultData.message);
+            }
+        }
+    });
+    </#if>
+    </#list>
+
+    <#list table.columnList as c>
+    <#if c.showType == "carouselselect">
+    //轮播图
+    $("#uploads_${c.name}").fileupload({
+        url:"${"$"}{ctx}/b/uploadFile/uploadImage",//文件上传地址，当然也可以直接写在input的data-url属性内
+        formData:{},//如果需要额外添加参数可以在这里添加,
+        progressall: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            $('#upload_progress .bar').css(
+                'width',
+                progress + '%'
+            );
+        },
+        send : function(e,data){
+            var filename = data.files[0].name;
+            if (filename.indexOf(".JPG") < 1 && filename.indexOf(".jpg") < 1 && filename.indexOf(".jpeg") < 1 && filename.indexOf(".JPEG") < 1 && filename.indexOf(".PNG") < 1 && filename.indexOf(".png") < 1){
+                xxl.message("不支持当前图片");
+                return false;
+            }
+        },
+        done:function(e,result){
+            var resultData = result.result;
+            if(resultData.code==0){
+                var icon = resultData.data;
+                var targetDiv = $("#${c.javaField}UrlTemplate>div").clone();
+                targetDiv.find("input").val(icon);
+                targetDiv.find("img").attr("src",staticAddressUrl+"/"+icon);
+                targetDiv.find("input[name=${c.javaField}]").val(icon);
+                $("#uploads_div_${c.name} .img-preview").append(targetDiv);
+            }else{
+                 xxl.message(resultData.message);
+            }
+        }
+    });
+    </#if>
+    </#list>
+
+
+    <#list table.columnList as c>
+    <#if c.showType == "fileselect">
+    //文件上传选中文件
+    function ${c.javaField}SelectFile(sthis) {
+        var fileName = sthis.files[0].name;
+        $(sthis).next().html('已选好文件！【'+fileName+'】')
+    }
+    </#if>
+    </#list>
+
+    //	AJAX提交表单，成功后关闭当前窗口并且刷新表格
+    function summitForm(form) {
+        <#if isFile??>
+        <#list table.columnList as c>
+        <#if c.showType == "fileselect">
+            var ${c.javaField}Dfd = $.Deferred();
+            var ${c.javaField}Promise = $.when(${c.javaField}Dfd);
+            ${c.javaField}AjaxFileUpload(${c.javaField}Dfd);
+
+            function ${c.javaField}AjaxFileUpload(${c.javaField}Dfd) {
+                $.ajaxFileUpload({
+                    url: "${ctx}/b/uploadFile/uploadFile",
+                    //传送请求数据
+                    secureuri: false,
+                    fileElementId: '${c.javaField}File',
+                    dataType: 'json',
+                    data: {},
+                    success: function (result) {
+                        var code = result.code;
+                        var message = result.message;
+                        var data = result.data;
+                        if(code != 0){
+                            xxl.message(message, 2);
+                            return;
+                        }
+                        $("#${c.javaField}").val(data);
+
+                        ${c.javaField}Dfd.resolve(); //此对象方法就是代表ajax是执行完成；
+                    },
+                    error: function (data, status, e) {
+                        xxl.message("保存失败！", 2);
+                    }
+                });
+            }
+
+            var obj = ${c.javaField}Promise.done(function () {
+                saveAjax(form);
+            });
+        </#if>
+        </#list>
+        </#if>
+        <#if !isFile??>
+            saveAjax(form);
+        </#if>
+    }
+
+    function saveAjax(form){
+        $.ajax({
+            url: "${"$"}{ctx}/b/${className}/save",
+            data: $(form).serialize(),
+            type: "post",
+            success: function (data) {
+                if (data == "success") {
+                    parent.xxl.sucRef();
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                }
+                <#list table.columnList as c>
+                <#if c.showType == "pictureselect">
+                <#if c.isNull == "0">
+                else if (data == "${c.javaField}NotNull"){
+                     parent.xxl.message("请上传图片！",2,1000);
+                }
+                </#if>
+                </#if>
+                </#list>
+                }
+            })
+    }
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>
+
+<#function dashedToCamel(s)>
+	<#return s
+	?replace('(^_+)|(_+$)', '', 'r')
+	?replace('\\_+(\\w)?', ' $1', 'r')
+	?replace('([A-Z])', ' $1', 'r')
+	?capitalize
+	?replace(' ' , '')
+	?uncap_first
+	>
+</#function>
+
+]]>
+    </content>
+</template>

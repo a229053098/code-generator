@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>service</name>
+	<filePath>src/main/java/${PackageName}/service/impl/</filePath>
+	<fileName>${ClassName}ServiceImpl.java</fileName>
+	<content><![CDATA[
+
+
+package ${PackageName}.service.impl;
+
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import ${PackageName}.mapper.${ClassName}Mapper;
+import ${PackageName}.entity.${ClassName};
+import ${PackageName}.service.I${ClassName}Service;
+import ${PackageName}.model.${ClassName}Model;
+import ${PackageName}.excel.${ClassName}Ex;
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import java.util.List;
+
+/**
+ *
+ * ${ClassName} 表数据服务层接口实现类
+ *
+ */
+@Service
+public class ${ClassName}ServiceImpl extends BaseServiceImpl<${ClassName}Mapper, ${ClassName}> implements I${ClassName}Service {
+
+	@Autowired
+    private ${ClassName}Mapper ${className}Mapper;
+
+	<#list table.columnList as c>
+        <#if c.javaType == "java.util.Date">
+        <#if c.isNull == "0" && c.isEdit == "1">
+	@Override
+    public Boolean update${c.javaField}Null(${ClassName} ${className}){
+        return ${className}Mapper.update${c.javaField}Null(${className});
+    }
+    	</#if>
+    	</#if>
+    </#list>
+
+    <#if excel == "1">
+    @Override
+    public List<${ClassName}Ex> queryExportList(EntityWrapper entityWrapper) {
+        return ${className}Mapper.queryExportList(entityWrapper);
+    }
+    </#if>
+}]]>
+	</content>
+</template>

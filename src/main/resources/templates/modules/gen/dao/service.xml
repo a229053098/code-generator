@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>service</name>
+	<filePath>src/main/java/${PackageName}/service/</filePath>
+	<fileName>I${ClassName}Service.java</fileName>
+	<content><![CDATA[
+
+
+package ${PackageName}.service;
+
+import ${PackageName}.entity.${ClassName};
+import ${PackageName}.model.${ClassName}Model;
+import ${PackageName}.excel.${ClassName}Ex;
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import java.util.List;
+
+/**
+ *
+ * ${ClassName} 表数据服务层接口
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+public interface I${ClassName}Service extends IBaseService<${ClassName}> {
+
+	<#list table.columnList as c>
+        <#if c.javaType == "java.util.Date">
+        <#if c.isNull == "0" && c.isEdit == "1">
+	/**
+     * 更改生日为空
+     * @param  ${className}
+     * @return boolean
+     */
+    Boolean update${c.javaField}Null (${ClassName} ${className});
+    	</#if>
+    	</#if>
+    </#list>
+
+    <#if excel == "1">
+    List<${ClassName}Ex> queryExportList(EntityWrapper entityWrapper);
+    </#if>
+}
+]]>
+	</content>
+</template>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>service</name>
+	<filePath>src/main/java/${packageName}/service/</filePath>
+	<fileName>${ClassName}Service.java</fileName>
+	<content><![CDATA[
+
+
+package ${packageName}.service;
+
+import ${packageName}.entity.${ClassName};
+/**
+ *
+  * ${ClassName} 表数据服务层接口
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+public interface I${ClassName}Service extends IBaseService<${ClassName}> {
+}
+}]]>
+	</content>
+</template>

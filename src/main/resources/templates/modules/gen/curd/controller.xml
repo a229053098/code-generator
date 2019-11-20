@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>controller</name>
+	<filePath>src/main/java/${PackageName}/controller/manage/</filePath>
+	<fileName>${ClassName}Controller.java</fileName>
+	<content><![CDATA[
+
+<#-- 是否有文件上传 -->
+<#list table.columnList as c>
+	<#if c.showType == "fileselect" && c.isEdit == "1">
+		<#assign isFile=true />
+	</#if>
+</#list>
+
+package ${PackageName}.controller.manage;
+
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
+import ${PackageName}.bean.BSGridPage;
+import ${PackageName}.controller.manage.BaseController;
+import ${PackageName}.entity.${ClassName};
+<#if excel == "1">
+import ${PackageName}.excel.${ClassName}Ex;
+</#if>
+
+<#list table.columnList as c>
+            <#if c.referenceEntity != "">
+import ${PackageName}.service.I${c.referenceEntity}Service;
+import ${PackageName}.entity.${c.referenceEntity};
+            </#if>
+    </#list>
+import ${PackageName}.model.${ClassName}Model;
+import ${PackageName}.service.I${ClassName}Service;
+import ${PackageName}.util.*;
+import ${PackageName}.util.ExcelUtil;
+import ${PackageName}.util.QueryFilter;
+import ${PackageName}.util.DateUtil;
+import ${PackageName}.exception.ExcelException;
+import com.qipa.tag.DictUtil;
+import java.util.Arrays;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.List;
+import java.util.ArrayList;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.text.ParseException;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.ui.Model;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.apache.log4j.Logger;
+<#if isFile??>
+import org.springframework.web.multipart.MultipartFile;
+</#if>
+
+/**
+ *
+ * ${ClassName} 控制层
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+@Controller
+@RequestMapping("/b/${className}")
+public class ${ClassName}Controller extends BaseController{
+
+	Logger logger = Logger.getLogger(${ClassName}Controller.class);
+
+	@Autowired
+	protected I${ClassName}Service ${className}Service;
+	<#list table.columnList as c>
+            <#if c.referenceEntity != "">
+    @Autowired
+    protected I${c.referenceEntity}Service ${c.referenceEntity?lower_case}Service;
+            </#if>
+    </#list>
+
+
+
+    @RequestMapping("/listUI")
+    public String listUI(Model model) {
+    	logger.info("${ClassName}Controller.listUI");
+
+        <#list table.columnList as c>
+            <#if c.referenceEntity != "" && c.isQuery == '1'>
+        ${c.referenceEntity} ${c.referenceEntity?lower_case} = new ${c.referenceEntity}();
+        List<${c.referenceEntity}> ${c.referenceEntity?lower_case}s = ${c.referenceEntity?lower_case}Service.selectList(${c.referenceEntity?lower_case});
+        model.addAttribute("${c.referenceEntity?lower_case}s", ${c.referenceEntity?lower_case}s);
+            </#if>
+        </#list>
+        return "/page/${className}/${className}-list";
+    }
+    <#-- 数值类型时间字段 -->
+    <#list table.columnList as c>
+		<#if c.javaType != "java.util.Date"  && c.showType == "dateselect">
+			<#assign foo=true />
+		</#if>
+    </#list>
+    <#-- 联表判断 -->
+    <#list table.columnList as c>
+		<#if c.referenceTable != "" && c.referenceField != "">
+			<#assign foo2=true />
+		</#if>
+    </#list>
+
+
+    @RequestMapping("/list")
+    @ResponseBody
+    public Object list(BSGridPage<${ClassName}<#if foo2??>Model</#if>> bsPage, ${ClassName}Model model) {
+    	logger.info("${ClassName}Controller.list");
+
+		<#-- 默认排序字段 -->
+		<#if foo2??>
+		<#if defaultSortField?exists && defaultSortField?? && defaultSortField != "">
+		if(StringUtils.isBlank(bsPage.getOrderByField())){
+            bsPage.setSortName("a.${(defaultSortField?split(' '))[0]}");
+            bsPage.setSortOrder("${(defaultSortField?split(' '))[1]}");
+        }
+		</#if>
+		<#else>
+		<#if defaultSortField?exists && defaultSortField?? && defaultSortField != "">
+		if(StringUtils.isBlank(bsPage.getOrderByField())){
+            bsPage.setSortName("${(defaultSortField?split(' '))[0]}");
+            bsPage.setSortOrder("${(defaultSortField?split(' '))[1]}");
+        }
+		</#if>
+		</#if>
+    <#if foo2??>
+		Page<${ClassName}Model> page = ${className}Service.getPage(bsPage.getPage(), model);
+        BSGridPage<${ClassName}Model> bsGridPage = bsPage.parsePage(page);
+        return bsGridPage;
+	<#elseif foo??>
+        QueryFilter queryFilter = QueryFilter.getInstance(request);
+		queryFilter.buildEntityWrapper();
+		List<ParamEntity> paramEntities = queryFilter.getParamEntities();
+
+		List<ParamEntity> paramEntities2 = new ArrayList<>();
+		 EntityWrapper entityWrapper2 = new EntityWrapper();
+
+		for(ParamEntity paramEntity: paramEntities){
+		//字符串时间转时间戳字段
+		<#list table.columnList as c>
+			<#if c.javaType != "java.util.Date"  && c.showType == "dateselect">
+				if(paramEntity.getName().contains("${c.name}")){
+					Date date = DateUtils.StringToDate(paramEntity.getValue().toString());
+					paramEntity.setValue(date.getTime()/1000);
+				}
+			</#if>
+    	</#list>
+    	paramEntities2.add(paramEntity);
+		}
+		for (ParamEntity paramEntity : paramEntities2) {
+            entityWrapper2.addFilter(paramEntity.getName(), paramEntity.getValue());
+        }
+        Page<${ClassName}> page = ${className}Service.selectPage(bsPage.getPage(), entityWrapper2);
+        BSGridPage<${ClassName}> bsGridPage = bsPage.parsePage(page);
+        return bsGridPage;
+	<#else>
+		return ${className}Service.getBSPage(bsPage, QueryFilter.getInstance(request));
+    </#if>
+
+    }
+
+
+    @RequestMapping("/editUI")
+    public String editUI(<#list table.columnList as c><#if c.isPk == "1">${c.javaType} ${c.javaField}</#if></#list>, Model model) {
+    	logger.info("${ClassName}Controller.editUI");
+
+    	${ClassName} ${className} = ${className}Service.selectById(<#list table.columnList as c><#if c.isPk == "1">${c.javaField}</#if></#list>);
+        if (<#list table.columnList as c><#if c.isPk == "1">${c.javaField}</#if></#list> != null) {
+        	<#list table.columnList as c>
+        	<#if c.showType == "carouselselect">
+        	if (${className} != null && StringUtils.isNotBlank(${className}.get${c.simpleJavaField?cap_first}())) {
+                String ${c.javaField}UrlStr = ${className}.get${c.simpleJavaField?cap_first}();
+                List<String> ${c.javaField}UrlList = Arrays.asList(${c.javaField}UrlStr.split(","));
+                request.setAttribute("${c.javaField}UrlList", ${c.javaField}UrlList);
+            }
+            </#if>
+            </#list>
+
+            <#-- 数值类型时间字段 -->
+			<#list table.columnList as c>
+			<#if c.javaType != "java.util.Date"  && c.showType == "dateselect"  && c.isEdit == "1">
+			${ClassName}Model ${className}Model = new ${ClassName}Model();
+			BeanUtils.copyProperties(${className}, ${className}Model);
+			${className}Model.set${c.simpleJavaField?cap_first}str(DateUtils.longToString((long)${className}Model.get${c.simpleJavaField?cap_first}()*1000));
+			<#assign foo3=true />
+			</#if>
+			</#list>
+			<#if foo3??>
+			request.setAttribute("vo", ${className}Model);
+			<#else>
+			request.setAttribute("vo", ${className});
+			</#if>
+        }
+        <#list table.columnList as c>
+            <#if c.referenceEntity != "" && c.isEdit == "1">
+        ${c.referenceEntity} ${c.referenceEntity?lower_case} = new ${c.referenceEntity}();
+        List<${c.referenceEntity}> ${c.referenceEntity?lower_case}s = ${c.referenceEntity?lower_case}Service.selectList(${c.referenceEntity?lower_case});
+        model.addAttribute("${c.referenceEntity?lower_case}s", ${c.referenceEntity?lower_case}s);
+            </#if>
+        </#list>
+        return "/page/${className}/${className}-edit";
+    }
+
+
+    @RequestMapping("/save")
+    @ResponseBody
+    public String update(${ClassName}Model ${className}) {
+
+    	logger.info("${ClassName}Controller.update");
+    	<#list table.columnList as c>
+    	<#if c.showType == "pictureselect">
+    	<#if c.isNull == "0">
+    	if (StringUtils.isBlank(${className}.get${c.simpleJavaField?cap_first}())){
+            return "${c.javaField}NotNull";
+        }
+        </#if>
+        </#if>
+        </#list>
+
+		<#list table.columnList as c>
+		<#if c.isPk == "1">
+		<#if c.javaType == "String">
+		if (StringUtils.isNotBlank(${className}.get<#list table.columnList as c><#if c.isPk == "1">${c.simpleJavaField?cap_first}</#if></#list>())) {
+		</#if>
+		<#if c.javaType == "Integer">
+		if (${className}.get<#list table.columnList as c><#if c.isPk == "1">${c.simpleJavaField?cap_first}</#if></#list>() != null) {
+		</#if>
+		</#if>
+		</#list>
+            <#list table.columnList as c>
+        	<#if c.name == "update_user">
+        	${className}.setUpdateUser(getBUser().getId());
+        	</#if>
+        	<#if c.name == "update_time">
+                <#if c.javaType != "java.util.Date"  && c.showType == "dateselect">
+            ${className}.setUpdateTime((int)(DateUtils.getStringDateToLong(DateUtils.getDate(new Date()))/1000));
+                <#else>
+            ${className}.setUpdateTime(new Date());
+        		</#if>
+        	</#if>
+        	</#list>
+
+        	<#-- 接收数值类型时间字段 -->
+			<#list table.columnList as c>
+			<#if c.javaType != "java.util.Date"  && c.showType == "dateselect"  && c.isEdit == "1">
+			String ${c.javaField}str = ${className}.get${c.simpleJavaField?cap_first}str();
+			if(StringUtils.isNotBlank(${c.javaField}str)){
+				${className}.set${c.simpleJavaField?cap_first}((int)(DateUtils.getStringDateToLong(${c.javaField}str)/1000));
+			}
+			</#if>
+			</#list>
+            ${className}Service.updateSelectiveById(${className});
+        } else {
+        	<#list table.columnList as c>
+        		<#if c.name == "create_user">
+        	${className}.setCreateUser(getBUser().getId());
+        		</#if>
+        		<#if c.name == "create_time">
+        			<#if c.javaType != "java.util.Date"  && c.showType == "dateselect">
+        	${className}.setCreateTime((int)(DateUtils.getStringDateToLong(DateUtils.getDateToString(new Date(), DateStyle.YYYY_MM_DD_HH_MM_SS.getValue()))/1000));
+        			<#else>
+        	${className}.setCreateTime(new Date());
+        			</#if>
+        		</#if>
+        		<#if c.name == "add_time">
+        			<#if c.javaType != "java.util.Date"  && c.showType == "dateselect">
+        	${className}.setAddTime((int)(DateUtils.getStringDateToLong(DateUtils.getDateToString(new Date(), DateStyle.YYYY_MM_DD_HH_MM_SS.getValue()))/1000));
+        			<#else>
+        	${className}.setAddTime(new Date());
+        			</#if>
+        		</#if>
+        		<#if c.name == "update_time">
+        			<#if c.javaType != "java.util.Date"  && c.showType == "dateselect">
+        	${className}.setUpdateTime((int)(DateUtils.getStringDateToLong(DateUtils.getDateToString(new Date(), DateStyle.YYYY_MM_DD_HH_MM_SS.getValue()))/1000));
+        			<#else>
+        	${className}.setUpdateTime(new Date());
+        			</#if>
+        		</#if>
+        	</#list>
+
+        	<#-- 接收数值类型时间字段 -->
+			<#list table.columnList as c>
+			<#if c.javaType != "java.util.Date"  && c.showType == "dateselect"  && c.isEdit == "1">
+			String ${c.javaField}str = ${className}.get${c.simpleJavaField?cap_first}str();
+			if(StringUtils.isNotBlank(${c.javaField}str)){
+				${className}.set${c.simpleJavaField?cap_first}((int)(DateUtils.getStringDateToLong(${c.javaField}str)/1000));
+			}
+			</#if>
+			</#list>
+            ${className}Service.insertSelective(${className});
+        }
+        return "success";
+    }
+
+
+    @RequestMapping("/del")
+    @ResponseBody
+    public String delete(<#list table.columnList as c><#if c.isPk == "1">${c.javaType} ${c.javaField}</#if></#list>) {
+    	logger.info("${ClassName}Controller.delete");
+        ${className}Service.deleteById(<#list table.columnList as c><#if c.isPk == "1">${c.javaField}</#if></#list>);
+        return "success";
+    }
+
+
+    @RequestMapping("/delAll")
+    @ResponseBody
+    public String delAll(String ids) {
+    	logger.info("${ClassName}Controller.delAll");
+        boolean isDelete = ${className}Service.deleteBatchByIds(ids);
+        String result = isDelete ? "success" : "error";
+        return result;
+    }
+
+
+    <#if excel == "1">
+    @RequestMapping("/${className}Ex")
+    @ResponseBody
+    public void ${className}Ex(${ClassName}Model model) throws IOException, ExcelException{
+    	logger.info("${ClassName}Controller.${className}Ex");
+
+    	<#-- 默认排序字段 -->
+		<#if foo2??>
+		<#if defaultSortField?exists && defaultSortField?? && defaultSortField != "">
+		if(StringUtils.isBlank(model.getSortName())){
+            model.setSortName("a.${(defaultSortField?split(' '))[0]}");
+            model.setSortOrder("${(defaultSortField?split(' '))[1]}");
+        }
+		</#if>
+		<#else>
+		<#if defaultSortField?exists && defaultSortField?? && defaultSortField != "">
+		if(StringUtils.isBlank(model.getSortName())){
+            model.setSortName("${(defaultSortField?split(' '))[0]}");
+            model.setSortOrder("${(defaultSortField?split(' '))[1]}");
+        }
+		</#if>
+		</#if>
+
+    	<#if foo2??>
+    	model.setExportPageSize(1000);
+        List<${ClassName}Ex> ${className}ExList = ${className}Service.queryExportList(model);
+        for(${ClassName}Ex ${className}Ex: ${className}ExList){
+        <#list table.columnList as c>
+        	<#-- 字典字段 -->
+        	<#if c.dictType != "" && c.isList == "1">
+            String ${c.javaField}Ex = ${className}Ex.get${c.simpleJavaField?cap_first}Ex();
+            String ${c.javaField}Ex1 = DictUtil.getDictLabel(${c.javaField}Ex, "${c.dictType}", "");
+            ${className}Ex.set${c.simpleJavaField?cap_first}Ex(${c.javaField}Ex1);
+        	</#if>
+        	<#-- 数值类型时间字段 -->
+        	<#if c.javaType != "java.util.Date"  && c.showType == "dateselect" && c.isList == "1">
+			String ${c.javaField}Ex = ${className}Ex.get${c.simpleJavaField?cap_first}Ex();
+            if(StringUtils.isNotBlank(${c.javaField}Ex)){
+               ${className}Ex.set${c.simpleJavaField?cap_first}Ex(DateUtils.longToString(Long.valueOf(${c.javaField}Ex)*1000));
+            }
+        	</#if>
+        	<#-- 联表字段 -->
+            <#if c.referenceTable != "" && c.referenceField != ""  && c.isList == "1">
+            String ${c.javaField}Ex = ${className}Ex.get${c.simpleJavaField?cap_first}Ex();
+            ${c.referenceEntity} ${c.referenceEntity?lower_case} = ${c.referenceEntity?lower_case}Service.selectById(${c.javaField}Ex);
+            if(${c.referenceEntity?lower_case} != null){
+            	${className}Ex.set${c.simpleJavaField?cap_first}Ex(${c.referenceEntity?lower_case}.get${(c.referenceField?split('|'))[2]?cap_first}());
+            }
+            </#if>
+        </#list>
+        }
+
+        ExcelUtil<${ClassName}Ex> util1 = new ExcelUtil<${ClassName}Ex>(${ClassName}Ex.class);
+        response.setContentType("APPLICATION/OCTET-STREAM");
+        response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode("${ClassName}.xls", "UTF-8"));
+        util1.getListToExcel(${className}ExList, "${ClassName}", response.getOutputStream());
+
+    	<#else>
+
+    	EntityWrapper entityWrapper = QueryFilter.getInstance(request).buildEntityWrapper();
+        model.setExportPageSize(1000);
+        entityWrapper.setEntity(model);
+        List<${ClassName}Ex> ${className}ExList = ${className}Service.queryExportList(entityWrapper);
+        <#list table.columnList as c>
+        Map<Integer, String> ${c.dictType}DictMap = DictUtil.getDictMap("${c.dictType}");
+        </#list>
+
+        for(${ClassName}Ex ${className}Ex: ${className}ExList){
+        <#list table.columnList as c>
+        	<#-- 字典字段 -->
+        	<#if c.dictType != "" && c.isList == "1">
+            String ${c.javaField}Ex = ${className}Ex.get${c.simpleJavaField?cap_first}Ex();
+			if(StringUtils.isNotBlank(${c.javaField}Ex))
+			${className}Ex.set${c.simpleJavaField?cap_first}Ex(${c.dictType}DictMap.get(Integer.valueOf(${c.javaField}Ex)));
+        	</#if>
+        	<#-- 数值类型时间字段 -->
+        	<#if c.javaType != "java.util.Date"  && c.showType == "dateselect" && c.isList == "1">
+			String ${c.javaField}Ex = ${className}Ex.get${c.simpleJavaField?cap_first}Ex();
+            if(StringUtils.isNotBlank(${c.javaField}Ex)){
+               ${className}Ex.set${c.simpleJavaField?cap_first}Ex(DateUtils.longToString(Long.valueOf(${c.javaField}Ex)*1000));
+            }
+			</#if>
+            <#-- 联表字段 -->
+            <#if c.referenceTable != "" && c.referenceField != "" && c.isList == "1">
+            String ${c.javaField}Ex = ${className}Ex.get${c.simpleJavaField?cap_first}Ex();
+            ${c.referenceEntity} ${c.referenceEntity?lower_case} = ${c.referenceEntity?lower_case}Service.selectById(${c.javaField}Ex);
+            if(${c.referenceEntity?lower_case} != null){
+            	${className}Ex.set${c.simpleJavaField?cap_first}Ex(${c.referenceEntity?lower_case}.get${(c.referenceField?split('|'))[2]?cap_first}());
+            }
+            </#if>
+        </#list>
+        }
+        ExcelUtil<${ClassName}Ex> util1 = new ExcelUtil<${ClassName}Ex>(${ClassName}Ex.class);
+        response.setContentType("APPLICATION/OCTET-STREAM");
+        response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode("${ClassName}.xlsx", "UTF-8"));
+        util1.getListToExcel(${className}ExList, "${ClassName}", response.getOutputStream());
+    	</#if>
+    }
+    </#if>
+
+}
+]]>
+	</content>
+</template>

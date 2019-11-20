@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>entity</name>
+	<filePath>src/main/java/${PackageName}/excel/</filePath>
+	<fileName>${ClassName}Ex.java</fileName>
+	<content><![CDATA[
+package ${PackageName}.excel;
+
+import ${PackageName}.annotation.ExcelAttribute;
+import ${PackageName}.model.${ClassName}Model;
+/**
+ * ${functionName}Entity
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+public class ${ClassName}Ex extends ${ClassName}Model{
+
+	private Integer exportPageSize;
+	<#-- 生成字段属性 -->
+	<#list table.columnList as c>
+	<#if c.isList == "1">
+	/** ${c.comments} */
+	@ExcelAttribute(name = "${c.comments}")
+	<#if c.javaType == "Integer">
+		<#-- 是字典值 或者 是数值日期 或者联表字段-->
+		<#if c.dictType != '' || (c.javaType != "java.util.Date"  && c.showType == "dateselect") || (c.referenceTable != "" && c.referenceField != "")>
+	private String ${c.simpleJavaField}Ex;
+		<#else>
+	private Integer ${c.simpleJavaField}Ex;
+		</#if>
+	<#else>
+	private String ${c.simpleJavaField}Ex;
+	</#if>
+	</#if>
+	</#list>
+
+	public Integer getExportPageSize() {
+		return exportPageSize;
+	}
+
+	public void setExportPageSize(Integer exportPageSize) {
+		this.exportPageSize = exportPageSize;
+	}
+
+	<#-- 生成get和set方法 -->
+	<#list table.columnList as c>
+	<#if c.isList == "1">
+			<#list c.simpleAnnotationList as a>
+			</#list>
+	<#if c.javaType == "Integer">
+
+		<#-- 是字典值 或者 是数值日期 或者联表字段-->
+		<#if c.dictType != '' || (c.javaType != "java.util.Date"  && c.showType == "dateselect") || (c.referenceTable != "" && c.referenceField != "")>
+	public String get${c.simpleJavaField?cap_first}Ex() {
+		return ${c.simpleJavaField}Ex;
+	}
+
+	public void set${c.simpleJavaField?cap_first}Ex(String ${c.simpleJavaField}Ex) {
+		this.${c.simpleJavaField}Ex = ${c.simpleJavaField}Ex;
+	}
+		<#else>
+	public Integer get${c.simpleJavaField?cap_first}Ex() {
+		return ${c.simpleJavaField}Ex;
+	}
+
+	public void set${c.simpleJavaField?cap_first}Ex(Integer ${c.simpleJavaField}Ex) {
+		this.${c.simpleJavaField}Ex = ${c.simpleJavaField}Ex;
+	}
+		</#if>
+
+	<#else>
+	public String get${c.simpleJavaField?cap_first}Ex() {
+		return ${c.simpleJavaField}Ex;
+	}
+
+	public void set${c.simpleJavaField?cap_first}Ex(String ${c.simpleJavaField}Ex) {
+		this.${c.simpleJavaField}Ex = ${c.simpleJavaField}Ex;
+	}
+	</#if>
+	</#if>
+	</#list>
+
+}
+]]>
+	</content>
+</template>

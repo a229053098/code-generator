@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>model</name>
+	<filePath>src/main/java/${PackageName}/model/</filePath>
+	<fileName>${ClassName}Model.java</fileName>
+	<content><![CDATA[
+
+package ${PackageName}.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Date;
+import ${PackageName}.entity.${ClassName};
+
+/**
+ *
+ * ${ClassName} Model
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+public class ${ClassName}Model extends ${ClassName} {
+
+		@JsonIgnore
+		private Integer exportPageSize;
+		<#list table.columnList as c>
+            <#if c.referenceEntity != "" && c.referenceField != "">
+		private String ${(c.referenceField?split('|'))[2]};
+
+        public String get${(c.referenceField?split('|'))[2]?cap_first}() {
+		return ${(c.referenceField?split('|'))[2]};
+		}
+
+		public void set${(c.referenceField?split('|'))[2]?cap_first}(String ${(c.referenceField?split('|'))[2]}) {
+			this.${(c.referenceField?split('|'))[2]}  = ${(c.referenceField?split('|'))[2]};
+		}
+
+		<#-- 数值类型时间字段 -->
+			<#elseif c.javaType != "java.util.Date"  && c.showType == "dateselect" >
+		@JsonIgnore
+		private String ${c.javaField}str;
+		public String get${c.simpleJavaField?cap_first}str() {
+			return ${c.simpleJavaField}str;
+		}
+
+		public void set${c.simpleJavaField?cap_first}str(String ${c.simpleJavaField}str) {
+			this.${c.simpleJavaField}str = ${c.simpleJavaField}str;
+		}
+            </#if>
+        </#list>
+
+
+        public Integer getExportPageSize() {
+		return exportPageSize;
+		}
+
+		public void setExportPageSize(Integer exportPageSize) {
+			this.exportPageSize = exportPageSize;
+		}
+
+		<#-- 范围条件字段 -->
+		<#list table.columnList as c>
+			<#if c.isQuery?? && c.isQuery == "1" && c.queryType == "between">
+				<#-- 数值类型时间字段 -->
+				<#if c.javaType != "java.util.Date"  && c.showType == "dateselect">
+		@JsonIgnore
+		private String begin${c.simpleJavaField?cap_first};		<#if c.comments??>// 开始 ${c.comments}</#if>
+		@JsonIgnore
+		private String end${c.simpleJavaField?cap_first};		<#if c.comments??>// 结束 ${c.comments}</#if>
+				<#else>
+		@JsonIgnore
+		private String begin${c.simpleJavaField?cap_first};		<#if c.comments??>// 开始 ${c.comments}</#if>
+		@JsonIgnore
+		private String end${c.simpleJavaField?cap_first};		<#if c.comments??>// 结束 ${c.comments}</#if>
+				</#if>
+			</#if>
+		</#list>
+
+        <#-- 范围条件字段get和set方法 -->
+		<#list table.columnList as c>
+			<#if c.isQuery?? && c.isQuery == "1" && c.queryType == "between">
+
+				<#if c.javaType != "java.util.Date"  && c.showType == "dateselect">
+		public String getBegin${c.simpleJavaField?cap_first}() {
+			return begin${c.simpleJavaField?cap_first};
+		}
+
+		public void setBegin${c.simpleJavaField?cap_first}(String begin${c.simpleJavaField?cap_first}) {
+			this.begin${c.simpleJavaField?cap_first} = begin${c.simpleJavaField?cap_first};
+		}
+
+		public String getEnd${c.simpleJavaField?cap_first}() {
+			return end${c.simpleJavaField?cap_first};
+		}
+
+		public void setEnd${c.simpleJavaField?cap_first}(String end${c.simpleJavaField?cap_first}) {
+			this.end${c.simpleJavaField?cap_first} = end${c.simpleJavaField?cap_first};
+		}
+
+				<#else>
+
+
+		public String getBegin${c.simpleJavaField?cap_first}() {
+			return begin${c.simpleJavaField?cap_first};
+		}
+
+		public void setBegin${c.simpleJavaField?cap_first}(String begin${c.simpleJavaField?cap_first}) {
+			this.begin${c.simpleJavaField?cap_first} = begin${c.simpleJavaField?cap_first};
+		}
+
+		public String getEnd${c.simpleJavaField?cap_first}() {
+			return end${c.simpleJavaField?cap_first};
+		}
+
+		public void setEnd${c.simpleJavaField?cap_first}(String end${c.simpleJavaField?cap_first}) {
+			this.end${c.simpleJavaField?cap_first} = end${c.simpleJavaField?cap_first};
+		}
+				</#if>
+			</#if>
+		</#list>
+
+}
+]]>
+	</content>
+</template>

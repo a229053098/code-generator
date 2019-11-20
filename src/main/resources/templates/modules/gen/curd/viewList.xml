@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>viewList</name>
+	<filePath>src/main/webapp/WEB-INF/page/${className}</filePath>
+	<fileName>${className}-list.jsp</fileName>
+	<content><![CDATA[
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@include file="/jspf/fn.jspf" %>
+
+<!DOCTYPE HTML>
+<html>
+
+<head>
+
+    <%@include file="/jspf/list-meta.jspf" %>
+
+    <title>${functionNameSimple}</title>
+
+</head>
+
+<body>
+<nav class="breadcrumb">
+    <i class="Hui-iconfont">&#xe67f;</i> 首页
+    <span class="c-gray en">&gt;</span>  ${functionName}
+    <span class="c-gray en">&gt;</span>  ${functionNameSimple}
+    <!--<a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px"
+       href="javascript:location.replace(location.href);" title="刷新">
+        <i class="Hui-iconfont">&#xe68f;</i></a>-->
+</nav>
+<div class="page-container">
+
+	<#list table.columnList as c>
+		<#if c.referenceTable != "" && c.referenceField != "">
+		<#-- 联表的情况，控制层接收model -->
+			<#assign foo2=true />
+		</#if>
+    </#list>
+
+    <!-- 条件筛选 -->
+    <div class="search-container bg-F9">
+        <form id="bsSearchForm" action="#" method="post" class="form form-horizontal" onsubmit="javacript:return false;">
+            <div class="cl">
+            <#list table.columnList as c>
+            <#if c.isQuery?? && c.isQuery == "1">
+            <#if c.showType == "select" && c.referenceEntity != "">
+            	<div class="col-lg-3 col-md-4 col-sm-6 mt-5 mb-5">
+                    <label class="form-label col-sm-4 text-r">${c.comments}：</label>
+                    <div class="formControls col-sm-7">
+                        <select class="input-text" name="<#if foo2??>${c.javaFieldId}<#else>QUERY-${c.name}-s-eq</#if>">
+							<option value="">---请选择---</option>
+							<c:forEach items="${"${"}${c.referenceEntity?lower_case}s}" var="item">
+								<#if c.referenceField?split('|')[0]?contains("_")>
+								<#-- 关联的字段有下划线 -->
+								<option value="${"$"}{item.${((c.referenceField?split('|'))[0])?split('_')[0]}${((c.referenceField?split('|'))[0])?split('_')[1]?cap_first}}" <c:if test="${"$"}{vo.${c.javaFieldId} == item.${((c.referenceField?split('|'))[0])?split('_')[0]}${((c.referenceField?split('|'))[0])?split('_')[1]?cap_first}}">selected</c:if>>${"$"}{item.${dashedToCamel((c.referenceField?split('|'))[1])}}</option>
+								<#else>
+								<option value="${"$"}{item.${(c.referenceField?split('|'))[0]}}" >${"$"}{item.${dashedToCamel((c.referenceField?split('|'))[1])}}</option>
+								</#if>
+							</c:forEach>
+						</select>
+                    </div>
+                </div>
+            <#elseif c.showType == "select">
+            	<div class="col-lg-3 col-md-4 col-sm-6 mt-5 mb-5">
+                    <label class="form-label col-sm-4 text-r">${c.comments}：</label>
+                    <div class="formControls col-sm-7">
+                        <select name="<#if foo2??>${c.javaFieldId}<#else>QUERY-${c.name}-s-eq</#if>" class="input-text">
+                            <option value="">---请选择---</option>
+                            <c:forEach items="${"$"}{dict:getByType('${c.dictType}')}" var="item">
+                                <option value="${"$"}{item.code}">${"$"}{item.name}</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                </div>
+            <#elseif c.javaType == "java.util.Date" || c.showType == "dateselect">
+				<#if foo2??>
+					<#-- 联表的情况，控制层接收model -->
+					<#if c.queryType == 'between'>
+						<div class="formControls col-xs-5 col-sm-6 mt-5 mb-5">
+							<label class="form-label col-xs-2 col-sm-3" style="margin-right: -72px;padding-right: 87px;">${c.comments}：</label>
+						<input name="begin${c.simpleJavaField?cap_first}" type="text" readonly="readonly" maxlength="20" class="input-text Wdate" style="width:205px;"
+							value="<fmt:formatDate value="${"$"}{${className}.begin${c.simpleJavaField?cap_first}}" pattern="yyyy-MM-dd HH:mm:ss"/>"
+							onfocus="WdatePicker({startDate:'%y-%M-%d 00:00:00',dateFmt:'yyyy-MM-dd HH:mm:ss',isShowClear:true,readOnly:false});"/> -
+						<input name="end${c.simpleJavaField?cap_first}" type="text" readonly="readonly" maxlength="20" class="input-text Wdate" style="width:205px;"
+							value="<fmt:formatDate value="${"$"}{${className}.end${c.simpleJavaField?cap_first}}" pattern="yyyy-MM-dd HH:mm:ss"/>"
+							onfocus="WdatePicker({startDate:'%y-%M-%d 00:00:00',dateFmt:'yyyy-MM-dd HH:mm:ss',isShowClear:true,readOnly:false});"/>
+						</div>
+					<#else>
+						<div class="formControls col-xs-5 col-sm-6 mt-5 mb-5">
+							<label class="form-label col-xs-2 col-sm-3" style="margin-right: -72px;padding-right: 87px;">${c.comments}：</label>
+						<input name="${c.javaField}" type="text" readonly="readonly" maxlength="20" class="input-text Wdate" style="width:205px;"
+							value="<fmt:formatDate value="${"$"}{${className}.${c.javaField}}" pattern="yyyy-MM-dd HH:mm:ss"/>"
+							onfocus="WdatePicker({startDate:'%y-%M-%d 00:00:00',dateFmt:'yyyy-MM-dd HH:mm:ss',isShowClear:true,readOnly:false});"/>
+						</div>
+					</#if>
+				 <#else>
+				 	<#if c.queryType == 'between'>
+						<div class="formControls col-xs-5 col-sm-6 mt-5 mb-5">
+							<label class="form-label col-xs-2 col-sm-3" style="margin-right: -72px;padding-right: 87px;">${c.comments}：</label>
+							<input type="text" value="<fmt:formatDate value="${"$"}{vo.${c.javaField}}" pattern="yyyy-MM-dd HH:mm:ss"></fmt:formatDate>" name="QUERY-${c.name}-s-ge" onfocus="WdatePicker({startDate:'%y-%M-%d 00:00:00',dateFmt:'yyyy-MM-dd HH:mm:ss'})"
+								class="input-text Wdate" style="width:205px;" readonly>-
+							<input type="text" value="<fmt:formatDate value="${"$"}{vo.${c.javaField}}" pattern="yyyy-MM-dd HH:mm:ss"></fmt:formatDate>" name="QUERY-${c.name}-s-le" onfocus="WdatePicker({startDate:'%y-%M-%d 00:00:00',dateFmt:'yyyy-MM-dd HH:mm:ss'})"
+								class="input-text Wdate" style="width:205px;" readonly>
+						</div>
+					<#else>
+						<div class="formControls col-xs-5 col-sm-6 mt-5 mb-5">
+							<label class="form-label col-xs-2 col-sm-3" style="margin-right: -72px;padding-right: 87px;">${c.comments}：</label>
+							<input type="text" value="<fmt:formatDate value="${"$"}{vo.${c.javaField}}" pattern="yyyy-MM-dd HH:mm:ss"></fmt:formatDate>" name="QUERY-${c.name}-s-le" onfocus="WdatePicker({startDate:'%y-%M-%d 00:00:00',dateFmt:'yyyy-MM-dd HH:mm:ss'})"
+								class="input-text Wdate" style="width:205px;" readonly>
+						</div>
+					</#if>
+				</#if>
+
+            <#elseif c.showType != "pictureselect" && c.showType != "radiobox">
+                <div class="col-lg-3 col-md-4 col-sm-6 mt-5 mb-5">
+                    <label class="form-label col-sm-4 text-r">${c.comments}：</label>
+                    <div class="formControls col-sm-7">
+                     	<#if foo2??>
+                        <input type="text" class="input-text radius" value="" placeholder="" name="${c.javaField}">
+                     	<#else>
+                        <input type="text" class="input-text radius" value="" placeholder="" name="QUERY-${c.name}-s-<#if c.queryType == "=">eq<#elseif c.queryType == "like">lk<#elseif c.queryType == "!=">ne<#elseif c.queryType == "&gt;">gt<#elseif c.queryType == "&gt;=">ge<#elseif c.queryType == "&lt;">lt<#elseif c.queryType == "&lt;=">le<#elseif c.queryType == "in">in<#elseif c.queryType == "is">is<#elseif c.queryType == "notLike">nlk</#if>">
+                     	</#if>
+                    </div>
+                </div>
+            <#elseif c.showType == "radiobox">
+            	<div class="col-lg-3 col-md-4 col-sm-6 mt-5 mb-5">
+                    <label class="form-label col-sm-4 text-r">${c.comments}：</label>
+                    <div class="formControls col-sm-7">
+                     	<c:forEach items="${"$"}{dict:getByType('${c.dictType}')}" var="item">
+                    	<label><input type="radio" name="<#if foo2??>${c.javaFieldId}<#else>QUERY-${c.name}-s-eq</#if>" value="${"$"}{item.code}" <c:if test="${"$"}{vo.${c.javaField} == item.code}">checked</c:if>>${"$"}{item.name}</label>
+                		</c:forEach>
+                    </div>
+                </div>
+
+            </#if>
+             </#if>
+            </#list>
+                <div class="col-lg-3 col-md-4 col-sm-6 mt-5 mb-5">
+                    <div class=" col-sm-12">
+                    	<a class="btn btn-primary radius ml-15" id="bsSearch"><i class="Hui-iconfont">&#xe665;</i> 搜索
+                        </a>
+                    	<a class="btn btn-primary radius ml-15" id="bsReset"><i class="Hui-iconfont">&#xe66c;</i> 重置
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- 条件筛选结束 -->
+
+    <!-- 工具栏 -->
+    <div class="cl pd-5 bg-F9 bk-gray mt-5 pd-5">
+        <span class="l">
+            <my:p code="${className}_del">
+                <button onclick="delAll()" class="btn btn-danger  radius size-S ml-10">
+                    <i class="Hui-iconfont"> &#xe6e2;</i> 批量删除
+                </button>
+            </my:p>
+
+            <my:p code="${className}_edit">
+                <button onclick="add()" class="btn btn-success radius size-S ml-10">
+                    <i class="Hui-iconfont">&#xe600;</i> 添加
+                </button>
+            </my:p>
+
+            <#if excel == "1">
+            <span class="${className}_excel">
+                <button onclick="exportExcel()" type="button" class="btn btn-secondary radius size-S ml-10">
+                    <i class="Hui-iconfont"> &#xe644;</i>导出
+                </button>
+            </span>
+            </#if>
+
+        </span>
+    </div>
+
+    <!-- 表格 -->
+    <!--index是直接调用属性的，render调用的属性需要有方法-->
+    <div class="mt-10">
+        <table id="bsGrid" class="bs-grid">
+            <tr>
+            <#list table.columnList as c>
+				<#if c.isPk == "1">
+					<th w_index="${c.javaField}" w_check="true" width="1%;" onclick="clickSort(this)"></th>
+				</#if>
+				<#if c.isList == "1">
+					<#if (c.showType == "pictureselect" || c.javaType == "java.util.Date" ||
+					c.showType == "select" || c.showType == "radiobox" || c.showType == "checkbox"  || c.showType == "dateselect") && c.referenceTable != "" && c.referenceField != "" >
+						<th w_index="${dashedToCamel((c.referenceField?split('|'))[1])}" w_sort="a.${c.name}" w_align="center" width="10%;" onclick="clickSort(this)">${c.comments}</th>
+					<#elseif c.showType == "pictureselect" || c.javaType == "java.util.Date" ||
+					c.showType == "select" || c.showType == "radiobox" || c.showType == "checkbox"  || c.showType == "dateselect" || c.dictType != "">
+						<th w_render="${c.javaField}" w_sort="a.${c.name}" w_align="center" width="10%;" onclick="clickSort(this)">${c.comments}</th>
+					<#elseif c.referenceTable != "" && c.referenceField != "" >
+						<th w_index="${dashedToCamel((c.referenceField?split('|'))[1])}" w_sort="a.${c.name}" w_align="center" width="10%;" onclick="clickSort(this)">${c.comments}</th>
+					<#else>
+						<th w_index="${c.javaField}" w_sort="a.${c.name}" w_align="center" width="10%;" onclick="clickSort(this)">${c.comments}</th>
+					</#if>
+				</#if>
+				</#list>
+            	<th w_render="toolbar" w_align="center" width="8%;">操作</th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<%@include file="/jspf/list-footer.jspf" %>
+<#-- 是否需要时间控件判断 -->
+    <#list table.columnList as c>
+		<#if c.javaType == "java.util.Date" && c.showType == "dateselect" && c.isQuery == "1">
+			<#assign isDate=true />
+		</#if>
+    </#list>
+<#if isDate??>
+<%--时间控件--%>
+<script type="text/javascript" src="${"$"}{ctx}/plugins/lib/My97DatePicker/WdatePicker.js"></script>
+</#if>
+<script type="text/javascript">
+var primarykey = $("#bsGrid tr th").first().attr("w_index").toString();//数据库主键字段
+    function toolbar(row) {
+        var id = row[primarykey];
+        var html = "";
+
+        <my:p code="${className}_edit">
+        html += '<a title="编辑" href="javascript:;" onclick="add(' + id + ')"  class="btn btn-xs size-MINI btn-success btn-dialog ml-5" ><i class="Hui-iconfont" style="color: white;">&#xe6df;</i></a>'
+        </my:p>
+
+        <my:p code="${className}_del">
+        html += '<a title="删除" href="javascript:;" onclick="del(' + id + ')"  class="btn btn-xs size-MINI btn-danger btn-dialog ml-5" ><i class="Hui-iconfont" style="color: white;">&#xe6e2;</i></a>';
+        </my:p>
+
+        return html;
+    }
+    <#list table.columnList as c>
+	<#if (c.showType == "select" || c.showType == "radiobox" || c.showType == "checkbox" || c.dictType != "") && c.isList?? && c.isList == "1" && c.dictType != "">
+    /** 显示对应中文类型 **/
+    var ${c.javaField}List = ${"$"}{dict:getDictListJson("${c.dictType}")};
+    function ${c.javaField}(row) {
+        var ${c.javaField}Val = row.${c.javaField};
+        for(var i=0; i < ${c.javaField}List.length; i++){
+            if(${c.javaField}Val == ${c.javaField}List[i].code){
+                var color = "#999";
+                if (i == 0) color = "#f37b1d";
+                if (i == 1) color = "#5eb95e";
+                if (i == 2) color = "#5a98de";
+                if (i == 3) color = "#3bb4f2";
+                if (i == 4) color = "#2c3e50";
+                if (i == 5) color = "#dd514c";
+                if (i == 6) color = "#b06cc7";
+                if (i == 7) color = "#b7bd43";
+                return "<span class='label' style='background-color: "+color+";'>" + ${c.javaField}List[i].name + "</span>";
+            }
+        }
+    }
+  	</#if>
+    </#list>
+
+	<#list table.columnList as c>
+	<#if c.javaType == "java.util.Date"  || c.showType == "dateselect">
+		<#if c.javaType == "java.util.Date">
+			/** 显示时间格式 **/
+			function ${c.javaField}(row) {
+				if (row.${c.javaField} != null){
+					return new Date(row["${c.javaField}"]).format('yyyy-MM-dd hh:mm:ss');
+				} else {
+					return "";
+				}
+			}
+		<#else>
+		/** 时间戳显示时间格式 **/
+			function ${c.javaField}(row) {
+				if (row.${c.javaField} != null){
+					if(row["${c.javaField}"].toString().length == 10){
+					return new Date(row["${c.javaField}"] * 1000).format('yyyy-MM-dd hh:mm:ss');
+					}else if(row["${c.javaField}"].toString().length == 13){
+					return new Date(row["${c.javaField}"]).format('yyyy-MM-dd hh:mm:ss');
+					}
+				} else {
+					return "";
+				}
+			}
+		</#if>
+
+  	</#if>
+    </#list>
+
+    <#if excel == "1">
+    function exportExcel() {
+        var params = $('#bsSearchForm').serialize();
+        location.href = "${"$"}{basePath}/b/${className}/${className}Ex?" + params;
+    }
+    </#if>
+
+	<#list table.columnList as c>
+	<#if c.showType == "pictureselect">
+    /** 图片显示 **/
+    function ${c.javaField}(row) {
+        var ${c.javaField} = row.${c.javaField};
+        if(${c.javaField}){
+            var ${c.javaField}Url = "${"$"}{staticAddressUrl}"+row.${c.javaField};
+            return "<img width='50' height='50' src="+${c.javaField}Url+" />";
+        }else{
+            return "";
+        }
+    }
+    </#if>
+    </#list>
+
+
+    /** 获取列表数据 **/
+    var gridObj;
+    $(function () {
+        gridObj = BSGrid.init('bsGrid', {
+            url: '${"$"}{ctx}/b/${className}/list',
+            otherParames: $('#bsSearchForm').serializeArray(),
+        });
+		//所有下拉框使用select2
+        $("#bsSearchForm select").select2();
+    });
+
+    /** 跳转编辑框 **/
+    function add(id) {
+        var url = "${"$"}{ctx}/b/${className}/editUI?"+primarykey+"=";
+        if (id) {
+            url += id;
+        }
+        layer_show("编辑", url, 800, 650);
+    }
+
+    /** 删除 **/
+    function del(id) {
+        xxl.confirm("确认要删除吗？", function (index) {
+            $.get('${"$"}{ctx}/b/${className}/del?'+primarykey+'=' + id, function (result) {
+                if (result == "success") {
+                    xxl.sucRef();
+                }
+            })
+        });
+    }
+
+    /** 批量删除 **/
+    function delAll() {
+        var ids = BSGrid.getCheckedRowsId(gridObj);
+        if (!ids) {
+            xxl.message("请至少选中一行 !", 2);
+            return;
+        }
+        xxl.confirm("确定要删除选中项吗?", function () {
+            $.get("${"$"}{ctx}/b/${className}/delAll?ids=" + ids, function (result) {
+                if (result == "success") {
+                    xxl.sucRef();
+                }
+            })
+        });
+    }
+
+</script>
+</body>
+
+</html>
+
+<#function dashedToCamel(s)>
+	<#return s
+	?replace('(^_+)|(_+$)', '', 'r')
+	?replace('\\_+(\\w)?', ' $1', 'r')
+	?replace('([A-Z])', ' $1', 'r')
+	?capitalize
+	?replace(' ' , '')
+	?uncap_first
+	>
+</#function>
+
+]]>
+	</content>
+</template>

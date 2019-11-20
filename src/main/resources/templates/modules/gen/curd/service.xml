@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>service</name>
+	<filePath>src/main/java/${PackageName}/service/</filePath>
+	<fileName>I${ClassName}Service.java</fileName>
+	<content><![CDATA[
+
+
+package ${PackageName}.service;
+
+import ${PackageName}.entity.${ClassName};
+import ${PackageName}.model.${ClassName}Model;
+import ${PackageName}.excel.${ClassName}Ex;
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import java.util.List;
+import com.baomidou.mybatisplus.plugins.Page;
+
+/**
+ *
+ * ${ClassName} 表数据服务层接口
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+public interface I${ClassName}Service extends IBaseService<${ClassName}> {
+
+	<#-- 联表判断 -->
+    <#list table.columnList as c>
+		<#if c.referenceTable != "" && c.referenceField != "">
+			<#assign foo2=true />
+		</#if>
+    </#list>
+
+    <#if excel == "1">
+    List<${ClassName}Ex> queryExportList(<#if foo2??>${ClassName}Model model<#else>EntityWrapper entityWrapper</#if>);
+    </#if>
+
+    Page<${ClassName}Model> getPage(Page<${ClassName}Model> page, ${ClassName}Model params);
+
+	/**
+     * 联表集合
+     * @param params
+     * @return
+     */
+    List<${ClassName}Model> getJoinList(${ClassName}Model params);
+
+    /**
+     * 单表集合
+     * @param params
+     * @return
+     */
+    List<${ClassName}Model> getSimpleList(${ClassName}Model params);
+
+}
+]]>
+	</content>
+</template>

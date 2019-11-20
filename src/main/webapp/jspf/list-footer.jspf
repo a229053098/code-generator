@@ -1,0 +1,12 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
+<script type="text/javascript" src="/plugins/lib/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="/plugins/lib/layer/2.1/layer.js"></script>
+<%--<script type="text/javascript" src="/plugins/lib/laypage/1.2/laypage.js"></script>--%>
+<script type="text/javascript" src="/plugins/hui/h-ui/js/H-ui.js"></script>
+<script type="text/javascript" src="/plugins/hui/h-ui.admin/js/H-ui.admin.js"></script>
+<script type="text/javascript" src="/plugins/bs/builds/js/lang/grid.zh-CN.min.js"></script>
+<script type="text/javascript" src="/plugins/bs/builds/merged/bsgrid.all.min.js"></script>
+<script type="text/javascript" src="/app/js/common.js"></script>
+<link href="/static/jquery-select2/3.4/select2.min.css" rel="stylesheet" />
+<script src="/static/jquery-select2/3.4/select2.min.js" type="text/javascript"></script>

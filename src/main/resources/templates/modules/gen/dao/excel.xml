@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>entity</name>
+	<filePath>src/main/java/${PackageName}/excel/</filePath>
+	<fileName>${ClassName}Ex.java</fileName>
+	<content><![CDATA[
+package ${PackageName}.excel;
+
+import ${PackageName}.annotation.ExcelAttribute;
+import ${PackageName}.model.${ClassName}Model;
+/**
+ * ${functionName}Entity
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+public class ${ClassName}Ex extends ${ClassName}Model{
+	<#-- 生成字段属性 -->
+	<#list table.columnList as c>
+	<#if c.isList == "1">
+	/** ${c.comments} */
+	@ExcelAttribute(name = "${c.comments}")
+	<#if c.javaType == "Integer">
+	private Integer ${c.simpleJavaField}Ex;
+	<#else>
+	private String ${c.simpleJavaField}Ex;
+	</#if>
+	</#if>
+	</#list>
+
+
+	<#-- 生成get和set方法 -->
+	<#list table.columnList as c>
+	<#if c.isList == "1">
+			<#list c.simpleAnnotationList as a>
+			</#list>
+	<#if c.javaType == "Integer">
+	public Integer get${c.simpleJavaField?cap_first}Ex() {
+		return ${c.simpleJavaField}Ex;
+	}
+
+	public void set${c.simpleJavaField?cap_first}Ex(Integer ${c.simpleJavaField}Ex) {
+		this.${c.simpleJavaField}Ex = ${c.simpleJavaField}Ex;
+	}
+
+	<#else>
+	public String get${c.simpleJavaField?cap_first}Ex() {
+		return ${c.simpleJavaField}Ex;
+	}
+
+	public void set${c.simpleJavaField?cap_first}Ex(String ${c.simpleJavaField}Ex) {
+		this.${c.simpleJavaField}Ex = ${c.simpleJavaField}Ex;
+	}
+	</#if>
+	</#if>
+	</#list>
+
+}
+]]>
+	</content>
+</template>

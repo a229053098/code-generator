@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>controller</name>
+	<filePath>src/main/java/${packageName}/controller/manage/</filePath>
+	<fileName>${ClassName}Controller.java</fileName>
+	<content><![CDATA[
+
+package ${packageName}.controller;
+
+import ${packageName}.bean.BSGridPage;
+import ${packageName}.entity.${ClassName};
+import ${packageName}.util.QueryFilter;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ *
+ * ${ClassName} 控制层
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+@Controller
+@RequestMapping("/b/${className}")
+public class ${ClassName}Controller extends BaseController{
+
+    @RequestMapping("/listUI")
+    public String listUI() {
+        return "/page/${className}/${className}-list";
+    }
+
+
+    @RequestMapping("/list")
+    @ResponseBody
+    public Object list(BSGridPage<${ClassName}> bsPage) {
+        return ${className}Service.getBSPage(bsPage, QueryFilter.getInstance(request));
+    }
+
+    @RequestMapping("/editUI")
+    public String editUI(Integer id) {
+        if (id != null) {
+            request.setAttribute("vo", ${className}Service.selectById(id));
+        }
+        return "/page/${className}/${className}-edit";
+    }
+
+    @RequestMapping("/save")
+    @ResponseBody
+    public String update(${ClassName} ${className}) {
+        if (${className}.getId() != null) {
+            ${className}Service.updateSelectiveById(${className});
+        } else {
+            ${className}Service.insertSelective(${className});
+        }
+        return "success";
+    }
+
+    @RequestMapping("/del")
+    @ResponseBody
+    public String delete(Long id) {
+        ${className}Service.deleteById(id);
+        return "success";
+    }
+
+    @RequestMapping("/delAll")
+    @ResponseBody
+    public String delAll(String ids) {
+        boolean isDelete = ${className}Service.deleteBatchByIds(ids);
+        String result = isDelete ? "success" : "error";
+        return result;
+    }
+
+}]]>
+	</content>
+</template>

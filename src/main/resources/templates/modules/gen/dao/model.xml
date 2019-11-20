@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>model</name>
+	<filePath>src/main/java/${PackageName}/model/</filePath>
+	<fileName>${ClassName}Model.java</fileName>
+	<content><![CDATA[
+
+package ${PackageName}.model;
+
+import java.util.Date;
+import ${PackageName}.entity.${ClassName};
+
+/**
+ *
+ * ${ClassName} Model
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+public class ${ClassName}Model extends ${ClassName} {
+	<#-- 构造方法 -->
+	<#list table.columnList as c>
+		<#if c.javaType == "java.util.Date" && c.isNull == "0" && c.isEdit == "1">
+
+	private String ${c.simpleJavaField}s;
+		</#if>
+	</#list>
+
+	<#-- 生成get和set方法 -->
+	<#list table.columnList as c>
+			<#list c.simpleAnnotationList as a>
+			</#list>
+		<#if c.javaType == "java.util.Date" && c.isNull == "0" && c.isEdit == "1">
+	public String get${c.simpleJavaField?cap_first}s() {
+		return ${c.simpleJavaField}s;
+	}
+
+	public void set${c.simpleJavaField?cap_first}s(String ${c.simpleJavaField}s) {
+		this.${c.simpleJavaField}s = ${c.simpleJavaField}s;
+	}
+		</#if>
+	</#list>
+}
+]]>
+	</content>
+</template>

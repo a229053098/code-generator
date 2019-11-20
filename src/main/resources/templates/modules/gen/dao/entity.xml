@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+	<name>entity</name>
+	<filePath>src/main/java/${PackageName}/entity/</filePath>
+	<fileName>${ClassName}.java</fileName>
+	<content><![CDATA[
+/**
+ * Copyright &copy; 2012-2014 <a href="https://github.com/codegen/cody">Cody</a> All rights reserved.
+ */
+package ${PackageName}.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.baomidou.mybatisplus.annotations.IdType;
+
+import com.baomidou.mybatisplus.annotations.TableField;
+import com.baomidou.mybatisplus.annotations.TableId;
+import com.baomidou.mybatisplus.annotations.TableName;
+/**
+ * ${functionName}Entity
+ * @author ${functionAuthor}
+ * @version ${functionVersion}
+ */
+ @TableName("${table.name}")
+public class ${ClassName} implements Serializable{
+	
+	@TableField(exist = false)
+	private static final long serialVersionUID = 1L;
+
+	<#-- 生成字段属性 -->
+	<#list table.columnList as c>
+	<#-- 如果不是基类属性 -->
+		<#if c.isNotBaseField>
+	@TableId(type = IdType.AUTO)
+	private Integer id;
+		<#else>
+
+	/** ${c.comments} */
+	@TableField(value = "${c.name}")
+	private ${c.simpleJavaType} ${c.simpleJavaField};
+		</#if>
+	</#list>
+	<#-- 构造方法 -->
+	<#list table.columnList as c>
+		<#if table.parentExists && table.parentTableFk == c.name>
+
+	public ${ClassName}(${table.parent.className?cap_first} ${c.simpleJavaField}){
+		this.${c.simpleJavaField} = ${c.simpleJavaField};
+	}
+		</#if>
+	</#list>
+
+	<#-- 生成get和set方法 -->
+	<#list table.columnList as c>
+			<#list c.simpleAnnotationList as a>
+			</#list>
+
+	public ${c.simpleJavaType} get${c.simpleJavaField?cap_first}() {
+		return ${c.simpleJavaField};
+	}
+
+	public void set${c.simpleJavaField?cap_first}(${c.simpleJavaType} ${c.simpleJavaField}) {
+		this.${c.simpleJavaField} = ${c.simpleJavaField};
+	}
+	</#list>
+}]]>
+	</content>
+</template>
