@@ -194,8 +194,8 @@
 
 
 
-    <!--请在下方写此页面业务相关的脚本-->
-    <script type="text/javascript">
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript">
 
     <#list table.columnList as c>
     <#if c.showType == "RTEselect">
