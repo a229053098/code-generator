@@ -37,15 +37,12 @@ import ${PackageName}.util.QueryFilter;
 import ${PackageName}.util.DateUtil;
 import ${PackageName}.exception.ExcelException;
 import com.qipa.tag.DictUtil;
-import java.util.Arrays;
+import java.util.*;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.List;
-import java.util.ArrayList;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.text.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.ui.Model;
@@ -381,8 +378,11 @@ public class ${ClassName}Controller extends BaseController{
         model.setExportPageSize(1000);
         entityWrapper.setEntity(model);
         List<${ClassName}Ex> ${className}ExList = ${className}Service.queryExportList(entityWrapper);
+
         <#list table.columnList as c>
+        <#if c.dictType != "" && c.isList == "1">
         Map<Integer, String> ${c.dictType}DictMap = DictUtil.getDictMap("${c.dictType}");
+        </#if>
         </#list>
 
         for(${ClassName}Ex ${className}Ex: ${className}ExList){
