@@ -184,10 +184,10 @@
 					<th w_index="${c.javaField}" w_check="true" width="1%;" onclick="clickSort(this)"></th>
 				</#if>
 				<#if c.isList == "1">
-					<#if (c.showType == "pictureselect" || c.javaType == "java.util.Date" ||
+					<#if (c.javaType == "java.util.Date" ||
 					c.showType == "select" || c.showType == "radiobox" || c.showType == "checkbox"  || c.showType == "dateselect") && c.referenceTable != "" && c.referenceField != "" >
 						<th w_index="${dashedToCamel((c.referenceField?split('|'))[1])}" w_sort="a.${c.name}" w_align="center" width="10%;" onclick="clickSort(this)">${c.comments}</th>
-					<#elseif c.showType == "pictureselect" || c.javaType == "java.util.Date" ||
+					<#elseif c.showType == "pictureselect" || c.showType == "carouselselect" || c.javaType == "java.util.Date" ||
 					c.showType == "select" || c.showType == "radiobox" || c.showType == "checkbox"  || c.showType == "dateselect" || c.dictType != "">
 						<th w_render="${c.javaField}" w_sort="a.${c.name}" w_align="center" width="10%;" onclick="clickSort(this)">${c.comments}</th>
 					<#elseif c.referenceTable != "" && c.referenceField != "" >
@@ -297,13 +297,32 @@ var primarykey = $("#bsGrid tr th").first().attr("w_index").toString();//数据�
         var ${c.javaField} = row.${c.javaField};
         if(${c.javaField}){
             var ${c.javaField}Url = "${"$"}{staticAddressUrl}"+row.${c.javaField};
-            return "<img width='50' height='50' src="+${c.javaField}Url+" />";
+            return "<img width='50' height='50' src="+${c.javaField}Url+" onclick='openImg(this)'/>";
         }else{
             return "";
         }
     }
     </#if>
+    <#if c.showType == "carouselselect">
+    /** 多图片显示 **/
+    function ${c.javaField}(row) {
+        var ${c.javaField} = row.${c.javaField};
+        if(${c.javaField}){
+        	var imgArray = ${c.javaField}.split(",");
+        	var html = "";
+             $.each(imgArray, function (index, data) {
+                var imgUrl = imgArray[index];
+                html += "<img width='50' height='50' src="+imgUrl+" onclick='openImg(this)' />";
+            });
+            return html;
+        }else{
+            return "";
+        }
+    }
+
+    </#if>
     </#list>
+
 
 
     /** 获取列表数据 **/

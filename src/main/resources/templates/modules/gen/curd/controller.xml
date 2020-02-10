@@ -17,6 +17,7 @@ package ${PackageName}.controller.manage;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.plugins.Page;
 import ${PackageName}.bean.BSGridPage;
+import ${PackageName}.bean.ResultModel;
 import ${PackageName}.controller.manage.BaseController;
 import ${PackageName}.entity.${ClassName};
 <#if excel == "1">
@@ -207,14 +208,14 @@ public class ${ClassName}Controller extends BaseController{
 
     @RequestMapping("/save")
     @ResponseBody
-    public String update(${ClassName}Model ${className}) {
+    public ResultModel update(${ClassName}Model ${className}) {
 
     	logger.info("${ClassName}Controller.update");
     	<#list table.columnList as c>
     	<#if c.showType == "pictureselect">
     	<#if c.isNull == "0">
     	if (StringUtils.isBlank(${className}.get${c.simpleJavaField?cap_first}())){
-            return "${c.javaField}NotNull";
+            return ResultModel.fail("请上传图片！");
         }
         </#if>
         </#if>
@@ -292,7 +293,7 @@ public class ${ClassName}Controller extends BaseController{
 			</#list>
             ${className}Service.insertSelective(${className});
         }
-        return "success";
+        return ResultModel.ok();
     }
 
 

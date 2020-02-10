@@ -31,9 +31,19 @@ public interface ${ClassName}Mapper extends AutoMapper<${ClassName}> {
     </#list>
 
 	<#if excel == "1">
+	/**
+     * 导出查询
+     * @param
+     * @return
+     */
 	List<${ClassName}Ex> queryExportList(<#if foo2??>${ClassName}Model model<#else>EntityWrapper entityWrapper</#if>);
 	</#if>
 
+	/**
+     * 分页查询
+     * @param
+     * @return
+     */
 	List<${ClassName}Model> getPage(Page<${ClassName}Model> page, ${ClassName}Model params);
 
 	/**

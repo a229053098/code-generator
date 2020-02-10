@@ -87,7 +87,7 @@
         </#if>
     </#if>
         <#if c.showType == "pictureselect" || c.showType == "carouselselect">
-        <#-- 图片上传或者轮播图上传 -->
+        <#-- 图片上传或者多图片上传 -->
 
         <div class="row cl">
             <label class="form-label col-xs-3 col-sm-3"><#if c.isNull != "1"><span class="c-red">*</span></#if>${c.comments}：</label>
@@ -269,7 +269,7 @@
 
     <#list table.columnList as c>
     <#if c.showType == "carouselselect">
-    //轮播图
+    //多图片
     $("#uploads_${c.name}").fileupload({
         url:"${"$"}{ctx}/b/uploadFile/uploadImage",//文件上传地址，当然也可以直接写在input的data-url属性内
         formData:{},//如果需要额外添加参数可以在这里添加,
@@ -301,6 +301,11 @@
             }
         }
     });
+
+    //删除图片
+    function imageUrlClose(sthis) {
+        $(sthis).parent("div").remove();
+    }
     </#if>
     </#list>
 
@@ -366,21 +371,16 @@
             url: "${"$"}{ctx}/b/${className}/save",
             data: $(form).serialize(),
             type: "post",
-            success: function (data) {
-                if (data == "success") {
-                    parent.xxl.sucRef();
-                    var index = parent.layer.getFrameIndex(window.name);
-                    parent.layer.close(index);
+            success: function (result) {
+                var code = result.code;
+                var message = result.message;
+                if(code != 0){
+                    parent.xxl.message(message, 2);
+                    return;
                 }
-                <#list table.columnList as c>
-                <#if c.showType == "pictureselect">
-                <#if c.isNull == "0">
-                else if (data == "${c.javaField}NotNull"){
-                     parent.xxl.message("请上传图片！",2,1000);
-                }
-                </#if>
-                </#if>
-                </#list>
+                parent.xxl.sucRef();
+                var index = parent.layer.getFrameIndex(window.name);
+                parent.layer.close(index);
                 }
             })
     }
